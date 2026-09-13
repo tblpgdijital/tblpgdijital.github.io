@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#002b49">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Dijital Portal">
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon-192.png">
+
+  <title>TUI BLUE Palm Garden Dijital Yönetim Portalı</title>
+
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f7fa;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    button{font:inherit}
+
+    #appFrame{
+      position:fixed;inset:0;width:100%;height:100vh;height:100dvh;
+      border:0;background:#f4f7fa;
+    }
+
+    .actionBtn{
+      position:fixed;z-index:99999;border:0;border-radius:999px;
+      padding:12px 16px;color:#fff;font-weight:800;font-size:12px;
+      box-shadow:0 12px 30px rgba(0,43,73,.28);cursor:pointer;
+      display:none;align-items:center;gap:8px
+    }
+    #installBtn{right:14px;bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#003a61,#0871a9)}
+    #pushBtn{right:14px;bottom:calc(70px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#075f92,#0b87bd)}
+    .actionBtn.show{display:flex}
+
+    #status{
+      position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));
+      transform:translateX(-50%);z-index:100002;background:rgba(0,43,73,.96);
+      color:#fff;padding:9px 13px;border-radius:999px;font-size:11px;font-weight:800;
+      display:none;max-width:calc(100% - 24px);text-align:center
+    }
+
+    #installTip{
+      position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));
+      z-index:100001;background:#fff;color:#17384c;border:1px solid #cfe0ea;
+      border-radius:17px;padding:14px 44px 14px 14px;box-shadow:0 12px 34px rgba(0,59,106,.18);
+      font-size:13px;line-height:1.5;display:none
+    }
+    #installTip b{color:#002b49}
+    #tipClose{
+      position:absolute;right:8px;top:7px;width:30px;height:30px;border:0;
+      border-radius:10px;background:#eef4f8;color:#31596e;font-size:19px;cursor:pointer
+    }
+
+    @media(display-mode:standalone){
+      #installBtn{display:none!important}
+    }
+  </style>
+</head>
+<body>
+
+  <iframe
+    id="appFrame"
+    src="https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec"
+    title="TUI BLUE Palm Garden Dijital Yönetim Portalı"
+    allow="camera; microphone; clipboard-read; clipboard-write; fullscreen; autoplay"
+    allowfullscreen>
+  </iframe>
+
+  <button id="pushBtn" class="actionBtn" type="button">🔔 Bildirimleri Aç</button>
+  <button id="installBtn" class="actionBtn" type="button">⬇ Ana Ekrana Yükle</button>
+
+  <div id="installTip">
+    <button id="tipClose" type="button">×</button>
+    <b>iPhone / iPad:</b> Safari'de <b>Paylaş → Ana Ekrana Ekle</b> seçeneğini kullanın.
+    Sonra ana ekrandaki <b>Dijital Portal</b> ikonundan açıp <b>Bildirimleri Aç</b> düğmesine dokunun.
+  </div>
+
+  <div id="status"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const ONESIGNAL_APP_ID = '42b7220b-661b-45f3-907c-e54b9ea99aec';
+  const frame = document.getElementById('appFrame');
+  const pushBtn = document.getElementById('pushBtn');
+  const installBtn = document.getElementById('installBtn');
+  const installTip = document.getElementById('installTip');
+
+  const DEVICE_KEY = 'tbpg_device_id_v1';
+  const INSTALLED_KEY = 'tbpg_digital_installed_v1';
+  const TIP_KEY = 'tbpg_digital_install_tip_closed_v1';
+
+  let deferredPrompt = null;
+  let oneSignalApi = null;
+  let currentEducationId = '';
+  let pendingUser = null;
+
+
+  const PWA_STATUS_API = 'https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec';
+  const SHARED_DEVICE_KEY = 'tbpg_device_id_v1';
+
+  function sharedDeviceId(){
+    let id=localStorage.getItem(SHARED_DEVICE_KEY);
+    if(!id){
+      id=(window.crypto&&crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      localStorage.setItem(SHARED_DEVICE_KEY,id);
+    }
+    return id;
+  }
+
+  function platformName(){
+    const ua=navigator.userAgent||'';
+    if(/iPad|iPhone|iPod/i.test(ua))return 'iOS';
+    if(/Android/i.test(ua))return 'Android';
+    if(/Windows/i.test(ua))return 'Windows';
+    if(/Macintosh|Mac OS X/i.test(ua))return 'macOS';
+    return 'Diğer';
+  }
+
+  function oneSignalSubscriptionId(){
+    try{
+      return String(oneSignalApi?.User?.PushSubscription?.id||'');
+    }catch(_){
+      return '';
+    }
+  }
+
+  function sendPwaStatus(app,payload){
+    if(!payload||!payload.educationId||!payload.pwaToken)return Promise.resolve(false);
+
+    const cb='tbpgPwaCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const qs=new URLSearchParams({
+      api:'pwaPing',
+      callback:cb,
+      token:String(payload.pwaToken||''),
+      educationId:String(payload.educationId||''),
+      app:String(app||''),
+      deviceId:sharedDeviceId(),
+      installed:isStandalone()?'1':'0',
+      permission:('Notification' in window?Notification.permission:'unsupported'),
+      subscriptionId:oneSignalSubscriptionId(),
+      platform:platformName(),
+      userAgent:String(navigator.userAgent||'').slice(0,380)
+    });
+
+    return new Promise(resolve=>{
+      const s=document.createElement('script');
+      let timer=null;
+
+      window[cb]=function(result){
+        clearTimeout(timer);
+        try{delete window[cb]}catch(_){}
+        s.remove();
+        resolve(!!(result&&result.ok));
+      };
+
+      s.onerror=function(){
+        clearTimeout(timer);
+        try{delete window[cb]}catch(_){}
+        s.remove();
+        resolve(false);
+      };
+
+      timer=setTimeout(()=>{
+        try{delete window[cb]}catch(_){}
+        s.remove();
+        resolve(false);
+      },10000);
+
+      s.src=PWA_STATUS_API+'?'+qs.toString();
+      document.head.appendChild(s);
+    });
+  }
+
+  function isIOS(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+  }
+
+  function showStatus(text, ms=3000){
+    const el=document.getElementById('status');
+    el.textContent=text;
+    el.style.display='block';
+    clearTimeout(showStatus.timer);
+    showStatus.timer=setTimeout(()=>el.style.display='none',ms);
+  }
+
+  function deviceId(){
+    let id=localStorage.getItem(DEVICE_KEY);
+    if(!id){
+      id=(crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      localStorage.setItem(DEVICE_KEY,id);
+    }
+    return id;
+  }
+
+  function maybeShowIOSInstallTip(){
+    if(isIOS() && !isStandalone() && localStorage.getItem(TIP_KEY)!=='1'){
+      installTip.style.display='block';
+    }
+  }
+
+  document.getElementById('tipClose').addEventListener('click',()=>{
+    installTip.style.display='none';
+    localStorage.setItem(TIP_KEY,'1');
+  });
+
+  // ---------- PWA INSTALL ----------
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    if(!isStandalone()) installBtn.classList.add('show');
+  });
+
+  installBtn.addEventListener('click',async()=>{
+    if(isIOS()){
+      maybeShowIOSInstallTip();
+      showStatus('Safari: Paylaş → Ana Ekrana Ekle');
+      return;
+    }
+    if(!deferredPrompt){
+      showStatus('Tarayıcı menüsünden “Uygulamayı yükle / Ana ekrana ekle” seçeneğini kullanın.',5000);
+      return;
+    }
+    deferredPrompt.prompt();
+    const choice=await deferredPrompt.userChoice;
+    if(choice && choice.outcome==='accepted'){
+      localStorage.setItem(INSTALLED_KEY,'1');
+      installBtn.classList.remove('show');
+      if(pendingUser) await bindOneSignalUser(pendingUser);
+    }
+    deferredPrompt=null;
+  });
+
+  window.addEventListener('appinstalled',async()=>{
+    localStorage.setItem(INSTALLED_KEY,'1');
+    installBtn.classList.remove('show');
+    showStatus('Dijital Portal ana ekrana yüklendi ✓',3500);
+    if(pendingUser) await bindOneSignalUser(pendingUser);
+  });
+
+  if(isStandalone()){
+    localStorage.setItem(INSTALLED_KEY,'1');
+  } else if(isIOS()){
+    installBtn.classList.add('show');
+  }
+
+  // ---------- ONESIGNAL ----------
+  function refreshPushButton(){
+    const supported=('Notification' in window) && ('serviceWorker' in navigator);
+    if(!supported){ pushBtn.classList.remove('show'); return; }
+
+    if(isIOS() && !isStandalone()){
+      pushBtn.classList.remove('show');
+      maybeShowIOSInstallTip();
+      return;
+    }
+
+    if(Notification.permission==='granted'){
+      pushBtn.classList.remove('show');
+    }else{
+      pushBtn.textContent = Notification.permission==='denied'
+        ? '🔕 Bildirim İzni Kapalı'
+        : '🔔 Bildirimleri Aç';
+      pushBtn.classList.add('show');
+    }
+  }
+
+  async function setDigitalTags(payload){
+    if(!oneSignalApi || !currentEducationId) return;
+    const installed = isStandalone() || localStorage.getItem(INSTALLED_KEY)==='1';
+    try{
+      await oneSignalApi.User.addTags({
+        portal_dijital:'1',
+        pwa_dijital: installed ? '1' : '0',
+        dijital_departman:String(payload.department||''),
+        dijital_rol:String(payload.role||'')
+      });
+    }catch(err){
+      console.warn('OneSignal tags:',err);
+    }
+  }
+
+  async function bindOneSignalUser(payload){
+    if(!payload || !payload.educationId) return;
+    pendingUser=payload;
+    currentEducationId=String(payload.educationId||'').trim();
+    if(!currentEducationId) return;
+    if(!oneSignalApi){ refreshPushButton(); return; }
+
+    try{
+      // Eğitim Portalındaki kimlikle AYNI OneSignal external_id.
+      await oneSignalApi.login(currentEducationId);
+      await setDigitalTags(payload);
+      refreshPushButton();
+      await sendPwaStatus('DIJITAL',payload);
+      console.log('Shared OneSignal external_id:',currentEducationId);
+    }catch(err){
+      console.error('OneSignal user bind:',err);
+    }
+  }
+
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  window.OneSignalDeferred.push(async function(OneSignal){
+    oneSignalApi=OneSignal;
+    try{
+      await OneSignal.init({
+        appId:ONESIGNAL_APP_ID,
+        serviceWorkerPath:'/OneSignalSDKWorker.js',
+        serviceWorkerParam:{scope:'/'},
+        autoResubscribe:true
+      });
+      if(pendingUser) await bindOneSignalUser(pendingUser);
+      refreshPushButton();
+    }catch(err){
+      console.error('OneSignal init:',err);
+      showStatus('Bildirim sistemi başlatılamadı',4200);
+    }
+  });
+
+  pushBtn.addEventListener('click',async()=>{
+    try{
+      if(isIOS() && !isStandalone()){
+        maybeShowIOSInstallTip();
+        showStatus('Önce Ana Ekrana ekleyin');
+        return;
+      }
+
+      if(!oneSignalApi){
+        showStatus('Bildirim sistemi hazırlanıyor');
+        return;
+      }
+
+      if(Notification.permission==='denied'){
+        showStatus('Bildirim izni tarayıcıda engelli. Site ayarlarından Bildirimler → İzin ver seçin.',6500);
+        return;
+      }
+
+      if(currentEducationId){
+        await oneSignalApi.login(currentEducationId);
+      }
+
+      await oneSignalApi.Notifications.requestPermission();
+
+      if(Notification.permission==='granted'){
+        try{
+          if(oneSignalApi.User && oneSignalApi.User.PushSubscription){
+            await oneSignalApi.User.PushSubscription.optIn();
+          }
+        }catch(_){}
+
+        if(pendingUser) {{
+          await setDigitalTags(pendingUser);
+          await sendPwaStatus('DIJITAL',pendingUser);
+        }}
+
+        pushBtn.classList.remove('show');
+        showStatus('Bildirimler açıldı ✓',3500);
+      }else{
+        refreshPushButton();
+        showStatus('Bildirim izni verilmedi',3000);
+      }
+    }catch(err){
+      console.error('Notification permission:',err);
+      refreshPushButton();
+      showStatus('Bildirim izni açılamadı',3500);
+    }
+  });
+
+  // ---------- APPS SCRIPT IFRAME → GITHUB PWA ----------
+
+  function trustedAppsScriptOrigin(origin){
+    try{
+      const u=new URL(String(origin||''));
+      const h=u.hostname.toLowerCase();
+      return u.protocol==='https:' && (
+        h==='script.google.com' ||
+        h==='script.googleusercontent.com' ||
+        h.endsWith('.script.googleusercontent.com')
+      );
+    }catch(_){
+      return false;
+    }
+  }
+
+  window.addEventListener('message',async event=>{
+    if(!frame || event.source!==frame.contentWindow || !trustedAppsScriptOrigin(event.origin)) return;
+    const data=event.data||{};
+
+    if(data.type==='TBPG_DIGITAL_USER'){
+      await bindOneSignalUser(data);
+    }
+    else if(data.type==='TBPG_DIGITAL_LOGOUT'){
+      // OneSignal.logout() YOK.
+      // Abonelik Eğitim_ID üzerinde kalır; portal kapalıyken de bildirim gelir.
+      currentEducationId='';
+      pendingUser=null;
+      pushBtn.classList.remove('show');
+    }
+  });
+
+  refreshPushButton();
+  maybeShowIOSInstallTip();
+})();
+</script>
+</body>
+</html>
