@@ -3,19 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#002b49">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Dijital Portal">
+  <meta name="apple-mobile-web-app-title" content="Dijital Yönetim Merkezi">
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="icon" href="./icon-192.png">
 
-  <title>TUI BLUE Palm Garden Dijital Yönetim Portalı</title>
+  <title>TUI BLUE Palm Garden Dijital Yönetim Merkezi</title>
 
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
@@ -68,7 +66,7 @@
   <iframe
     id="appFrame"
     src="https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec"
-    title="TUI BLUE Palm Garden Dijital Yönetim Portalı"
+    title="TUI BLUE Palm Garden Dijital Yönetim Merkezi"
     allow="camera; microphone; clipboard-read; clipboard-write; fullscreen; autoplay"
     allowfullscreen>
   </iframe>
@@ -79,7 +77,7 @@
   <div id="installTip">
     <button id="tipClose" type="button">×</button>
     <b>iPhone / iPad:</b> Safari'de <b>Paylaş → Ana Ekrana Ekle</b> seçeneğini kullanın.
-    Sonra ana ekrandaki <b>Dijital Portal</b> ikonundan açıp <b>Bildirimleri Aç</b> düğmesine dokunun.
+    Sonra ana ekrandaki <b>Dijital Yönetim Merkezi</b> ikonundan açıp <b>Bildirimleri Aç</b> düğmesine dokunun.
   </div>
 
   <div id="status"></div>
@@ -136,13 +134,12 @@
   }
 
   function sendPwaStatus(app,payload){
-    if(!payload||!payload.educationId||!payload.pwaToken)return Promise.resolve(false);
+    if(!payload||!payload.educationId)return Promise.resolve(false);
 
     const cb='tbpgPwaCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const qs=new URLSearchParams({
       api:'pwaPing',
       callback:cb,
-      token:String(payload.pwaToken||''),
       educationId:String(payload.educationId||''),
       app:String(app||''),
       deviceId:sharedDeviceId(),
@@ -252,7 +249,7 @@
   window.addEventListener('appinstalled',async()=>{
     localStorage.setItem(INSTALLED_KEY,'1');
     installBtn.classList.remove('show');
-    showStatus('Dijital Portal ana ekrana yüklendi ✓',3500);
+    showStatus('Dijital Yönetim Merkezi ana ekrana yüklendi ✓',3500);
     if(pendingUser) await bindOneSignalUser(pendingUser);
   });
 
@@ -385,23 +382,8 @@
   });
 
   // ---------- APPS SCRIPT IFRAME → GITHUB PWA ----------
-
-  function trustedAppsScriptOrigin(origin){
-    try{
-      const u=new URL(String(origin||''));
-      const h=u.hostname.toLowerCase();
-      return u.protocol==='https:' && (
-        h==='script.google.com' ||
-        h==='script.googleusercontent.com' ||
-        h.endsWith('.script.googleusercontent.com')
-      );
-    }catch(_){
-      return false;
-    }
-  }
-
   window.addEventListener('message',async event=>{
-    if(!frame || event.source!==frame.contentWindow || !trustedAppsScriptOrigin(event.origin)) return;
+    if(!frame || event.source!==frame.contentWindow) return;
     const data=event.data||{};
 
     if(data.type==='TBPG_DIGITAL_USER'){
