@@ -7,111 +7,102 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Dijital Yönetim Merkezi">
-
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="icon" href="./icon-192.png">
-
+  <meta name="apple-mobile-web-app-title" content="Dijital Merkez">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/icon-192.png">
   <title>TUI BLUE Palm Garden Dijital Yönetim Merkezi</title>
-
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-
   <style>
     *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f7fa;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-    button{font:inherit}
-
-    #appFrame{
-      position:fixed;inset:0;width:100%;height:100vh;height:100dvh;
-      border:0;background:#f4f7fa;
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#eef7fc;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    #appFrame{position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#eef7fc}
+    .shellBtn{
+      position:fixed;right:12px;z-index:50000;border:0;border-radius:999px;
+      padding:11px 14px;font-weight:850;font-size:12px;color:#fff;cursor:pointer;
+      box-shadow:0 10px 28px rgba(0,60,100,.24);display:none;align-items:center;gap:7px
     }
-
-    .actionBtn{
-      position:fixed;z-index:99999;border:0;border-radius:999px;
-      padding:12px 16px;color:#fff;font-weight:800;font-size:12px;
-      box-shadow:0 12px 30px rgba(0,43,73,.28);cursor:pointer;
-      display:none;align-items:center;gap:8px
+    #pushBtn{bottom:84px;background:linear-gradient(135deg,#066ca6,#0793ca)}
+    #installBtn{bottom:24px;background:linear-gradient(135deg,#003a61,#0871a9)}
+    .shellBtn.show{display:flex}
+    #tip{
+      position:fixed;left:10px;right:10px;bottom:86px;z-index:50001;
+      background:#fff;border:1px solid #d4e3ec;border-radius:18px;padding:14px 42px 14px 14px;
+      box-shadow:0 16px 44px rgba(0,55,90,.18);font-size:12px;line-height:1.5;color:#24475d;display:none
     }
-    #installBtn{right:14px;bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#003a61,#0871a9)}
-    #pushBtn{right:14px;bottom:calc(70px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#075f92,#0b87bd)}
-    .actionBtn.show{display:flex}
-
-    #status{
-      position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));
-      transform:translateX(-50%);z-index:100002;background:rgba(0,43,73,.96);
-      color:#fff;padding:9px 13px;border-radius:999px;font-size:11px;font-weight:800;
-      display:none;max-width:calc(100% - 24px);text-align:center
-    }
-
-    #installTip{
-      position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));
-      z-index:100001;background:#fff;color:#17384c;border:1px solid #cfe0ea;
-      border-radius:17px;padding:14px 44px 14px 14px;box-shadow:0 12px 34px rgba(0,59,106,.18);
-      font-size:13px;line-height:1.5;display:none
-    }
-    #installTip b{color:#002b49}
-    #tipClose{
-      position:absolute;right:8px;top:7px;width:30px;height:30px;border:0;
-      border-radius:10px;background:#eef4f8;color:#31596e;font-size:19px;cursor:pointer
-    }
-
-    @media(display-mode:standalone){
-      #installBtn{display:none!important}
+    #tipClose{position:absolute;right:8px;top:7px;width:28px;height:28px;border:0;border-radius:9px;background:#eef4f8;color:#355b70}
+    #status{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:50002;background:#003a61;color:#fff;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;display:none}
+    @media(display-mode:standalone){#installBtn{display:none!important}}
+    @media(max-width:700px){
+      #pushBtn{bottom:90px;right:12px}
+      #installBtn{bottom:18px;right:12px}
     }
   </style>
 </head>
 <body>
+  <iframe id="appFrame" title="TUI BLUE Palm Garden Dijital Yönetim Merkezi"
+    allow="camera; microphone; clipboard-read; clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
 
-  <iframe
-    id="appFrame"
-    src="https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec"
-    title="TUI BLUE Palm Garden Dijital Yönetim Merkezi"
-    allow="camera; microphone; clipboard-read; clipboard-write; fullscreen; autoplay"
-    allowfullscreen>
-  </iframe>
-
-  <button id="pushBtn" class="actionBtn" type="button">🔔 Bildirimleri Aç</button>
-  <button id="installBtn" class="actionBtn" type="button">⬇ Ana Ekrana Yükle</button>
-
-  <div id="installTip">
-    <button id="tipClose" type="button">×</button>
-    <b>iPhone / iPad:</b> Safari'de <b>Paylaş → Ana Ekrana Ekle</b> seçeneğini kullanın.
-    Sonra ana ekrandaki <b>Dijital Yönetim Merkezi</b> ikonundan açıp <b>Bildirimleri Aç</b> düğmesine dokunun.
+  <button id="pushBtn" class="shellBtn" type="button">🔔 Bildirimleri Aç</button>
+  <button id="installBtn" class="shellBtn" type="button">⬇ Ana Ekrana Yükle</button>
+  <div id="tip"><button id="tipClose" type="button">×</button>
+    iPhone/iPad: Safari'de <b>Paylaş → Ana Ekrana Ekle</b> seçeneğini kullanın.
   </div>
-
   <div id="status"></div>
 
 <script>
 (() => {
   'use strict';
 
+  const APP_URL = 'https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec';
   const ONESIGNAL_APP_ID = '42b7220b-661b-45f3-907c-e54b9ea99aec';
+  const PWA_STATUS_API = APP_URL;
+
   const frame = document.getElementById('appFrame');
   const pushBtn = document.getElementById('pushBtn');
   const installBtn = document.getElementById('installBtn');
-  const installTip = document.getElementById('installTip');
-
-  const DEVICE_KEY = 'tbpg_device_id_v1';
-  const INSTALLED_KEY = 'tbpg_digital_installed_v1';
-  const TIP_KEY = 'tbpg_digital_install_tip_closed_v1';
+  const tip = document.getElementById('tip');
 
   let deferredPrompt = null;
   let oneSignalApi = null;
-  let currentEducationId = '';
   let pendingUser = null;
+  let currentEducationId = '';
 
+  function isPhone(){
+    const ua=navigator.userAgent||'';
+    const phoneUA=/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(ua);
+    return phoneUA || window.matchMedia('(max-width:700px)').matches;
+  }
 
-  const PWA_STATUS_API = 'https://script.google.com/macros/s/AKfycbyXiDd0gtdLwH0LWwo4C77PpDQmM8iDTA0B9u-ZrHy0AAT6DOx2OEDEAtyPPJ0UI2Y/exec';
-  const SHARED_DEVICE_KEY = 'tbpg_device_id_v1';
+  function appUrlForDevice(){
+    return APP_URL + (isPhone() ? '?view=mobile' : '');
+  }
 
-  function sharedDeviceId(){
-    let id=localStorage.getItem(SHARED_DEVICE_KEY);
+  frame.src = appUrlForDevice();
+
+  function isIOS(){
+    return /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  }
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode:standalone)').matches ||
+      window.navigator.standalone===true;
+  }
+
+  function status(msg,ms=3200){
+    const el=document.getElementById('status');
+    el.textContent=msg; el.style.display='block';
+    clearTimeout(status.t);
+    status.t=setTimeout(()=>el.style.display='none',ms);
+  }
+
+  function deviceId(){
+    const key='tbpg_device_id_v1';
+    let id=localStorage.getItem(key);
     if(!id){
-      id=(window.crypto&&crypto.randomUUID)
-        ? crypto.randomUUID()
-        : 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-      localStorage.setItem(SHARED_DEVICE_KEY,id);
+      id=(crypto&&crypto.randomUUID)?crypto.randomUUID():'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      localStorage.setItem(key,id);
     }
     return id;
   }
@@ -125,197 +116,77 @@
     return 'Diğer';
   }
 
-  function oneSignalSubscriptionId(){
-    try{
-      return String(oneSignalApi?.User?.PushSubscription?.id||'');
-    }catch(_){
-      return '';
-    }
+  function subscriptionId(){
+    try{return String(oneSignalApi?.User?.PushSubscription?.id||'')}catch(_){return ''}
   }
 
-  function sendPwaStatus(app,payload){
-    if(!payload||!payload.educationId)return Promise.resolve(false);
-
+  function ping(payload){
+    if(!payload?.educationId)return Promise.resolve(false);
     const cb='tbpgPwaCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const qs=new URLSearchParams({
-      api:'pwaPing',
-      callback:cb,
-      educationId:String(payload.educationId||''),
-      app:String(app||''),
-      deviceId:sharedDeviceId(),
-      installed:isStandalone()?'1':'0',
-      permission:('Notification' in window?Notification.permission:'unsupported'),
-      subscriptionId:oneSignalSubscriptionId(),
-      platform:platformName(),
+      api:'pwaPing',callback:cb,educationId:String(payload.educationId||''),app:'DIJITAL',
+      deviceId:deviceId(),installed:isStandalone()?'1':'0',
+      permission:('Notification'in window?Notification.permission:'unsupported'),
+      subscriptionId:subscriptionId(),platform:platformName(),
       userAgent:String(navigator.userAgent||'').slice(0,380)
     });
-
     return new Promise(resolve=>{
       const s=document.createElement('script');
-      let timer=null;
-
-      window[cb]=function(result){
-        clearTimeout(timer);
-        try{delete window[cb]}catch(_){}
-        s.remove();
-        resolve(!!(result&&result.ok));
-      };
-
-      s.onerror=function(){
-        clearTimeout(timer);
-        try{delete window[cb]}catch(_){}
-        s.remove();
-        resolve(false);
-      };
-
-      timer=setTimeout(()=>{
-        try{delete window[cb]}catch(_){}
-        s.remove();
-        resolve(false);
-      },10000);
-
+      const timer=setTimeout(()=>finish(false),9000);
+      function finish(v){clearTimeout(timer);try{delete window[cb]}catch(_){}s.remove();resolve(v)}
+      window[cb]=r=>finish(!!r?.ok);
+      s.onerror=()=>finish(false);
       s.src=PWA_STATUS_API+'?'+qs.toString();
       document.head.appendChild(s);
     });
   }
 
-  function isIOS(){
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  }
-
-  function isStandalone(){
-    return window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true;
-  }
-
-  function showStatus(text, ms=3000){
-    const el=document.getElementById('status');
-    el.textContent=text;
-    el.style.display='block';
-    clearTimeout(showStatus.timer);
-    showStatus.timer=setTimeout(()=>el.style.display='none',ms);
-  }
-
-  function deviceId(){
-    let id=localStorage.getItem(DEVICE_KEY);
-    if(!id){
-      id=(crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-      localStorage.setItem(DEVICE_KEY,id);
-    }
-    return id;
-  }
-
-  function maybeShowIOSInstallTip(){
-    if(isIOS() && !isStandalone() && localStorage.getItem(TIP_KEY)!=='1'){
-      installTip.style.display='block';
-    }
-  }
-
-  document.getElementById('tipClose').addEventListener('click',()=>{
-    installTip.style.display='none';
-    localStorage.setItem(TIP_KEY,'1');
-  });
-
-  // ---------- PWA INSTALL ----------
-  window.addEventListener('beforeinstallprompt',e=>{
-    e.preventDefault();
-    deferredPrompt=e;
-    if(!isStandalone()) installBtn.classList.add('show');
-  });
-
-  installBtn.addEventListener('click',async()=>{
-    if(isIOS()){
-      maybeShowIOSInstallTip();
-      showStatus('Safari: Paylaş → Ana Ekrana Ekle');
-      return;
-    }
-    if(!deferredPrompt){
-      showStatus('Tarayıcı menüsünden “Uygulamayı yükle / Ana ekrana ekle” seçeneğini kullanın.',5000);
-      return;
-    }
-    deferredPrompt.prompt();
-    const choice=await deferredPrompt.userChoice;
-    if(choice && choice.outcome==='accepted'){
-      localStorage.setItem(INSTALLED_KEY,'1');
-      installBtn.classList.remove('show');
-      if(pendingUser) await bindOneSignalUser(pendingUser);
-    }
-    deferredPrompt=null;
-  });
-
-  window.addEventListener('appinstalled',async()=>{
-    localStorage.setItem(INSTALLED_KEY,'1');
-    installBtn.classList.remove('show');
-    showStatus('Dijital Yönetim Merkezi ana ekrana yüklendi ✓',3500);
-    if(pendingUser) await bindOneSignalUser(pendingUser);
-  });
-
-  if(isStandalone()){
-    localStorage.setItem(INSTALLED_KEY,'1');
-  } else if(isIOS()){
-    installBtn.classList.add('show');
-  }
-
-  // ---------- ONESIGNAL ----------
   function refreshPushButton(){
-    const supported=('Notification' in window) && ('serviceWorker' in navigator);
-    if(!supported){ pushBtn.classList.remove('show'); return; }
-
-    if(isIOS() && !isStandalone()){
-      pushBtn.classList.remove('show');
-      maybeShowIOSInstallTip();
-      return;
-    }
-
-    if(Notification.permission==='granted'){
-      pushBtn.classList.remove('show');
-    }else{
-      pushBtn.textContent = Notification.permission==='denied'
-        ? '🔕 Bildirim İzni Kapalı'
-        : '🔔 Bildirimleri Aç';
-      pushBtn.classList.add('show');
-    }
+    if(!('Notification'in window) || !('serviceWorker'in navigator))return;
+    if(isIOS()&&!isStandalone()){pushBtn.classList.remove('show');return}
+    if(Notification.permission==='granted')pushBtn.classList.remove('show');
+    else pushBtn.classList.add('show');
   }
 
-  async function setDigitalTags(payload){
-    if(!oneSignalApi || !currentEducationId) return;
-    const installed = isStandalone() || localStorage.getItem(INSTALLED_KEY)==='1';
+  async function bindUser(payload){
+    if(!payload?.educationId)return;
+    pendingUser=payload;
+    currentEducationId=String(payload.educationId).trim();
+    if(!oneSignalApi)return;
     try{
+      await oneSignalApi.login(currentEducationId);
       await oneSignalApi.User.addTags({
         portal_dijital:'1',
-        pwa_dijital: installed ? '1' : '0',
+        pwa_dijital:isStandalone()?'1':'0',
         dijital_departman:String(payload.department||''),
         dijital_rol:String(payload.role||'')
       });
-    }catch(err){
-      console.warn('OneSignal tags:',err);
-    }
+      await ping(payload);
+    }catch(e){console.warn(e)}
+    refreshPushButton();
   }
 
-  async function bindOneSignalUser(payload){
-    if(!payload || !payload.educationId) return;
-    pendingUser=payload;
-    currentEducationId=String(payload.educationId||'').trim();
-    if(!currentEducationId) return;
-    if(!oneSignalApi){ refreshPushButton(); return; }
-
-    try{
-      // Eğitim Portalındaki kimlikle AYNI OneSignal external_id.
-      await oneSignalApi.login(currentEducationId);
-      await setDigitalTags(payload);
-      refreshPushButton();
-      await sendPwaStatus('DIJITAL',payload);
-      console.log('Shared OneSignal external_id:',currentEducationId);
-    }catch(err){
-      console.error('OneSignal user bind:',err);
+  async function requestPush(){
+    if(isIOS()&&!isStandalone()){
+      tip.style.display='block';
+      status('Önce Ana Ekrana ekleyin');
+      return;
     }
+    if(!oneSignalApi){status('Bildirim sistemi hazırlanıyor');return}
+    if(currentEducationId)await oneSignalApi.login(currentEducationId);
+    try{
+      await oneSignalApi.Notifications.requestPermission();
+      if(Notification.permission==='granted'){
+        try{await oneSignalApi.User.PushSubscription.optIn()}catch(_){}
+        if(pendingUser)await ping(pendingUser);
+        status('Bildirimler açıldı ✓');
+      }
+    }catch(e){status('Bildirim izni açılamadı')}
+    refreshPushButton();
   }
 
   window.OneSignalDeferred=window.OneSignalDeferred||[];
-  window.OneSignalDeferred.push(async function(OneSignal){
+  window.OneSignalDeferred.push(async OneSignal=>{
     oneSignalApi=OneSignal;
     try{
       await OneSignal.init({
@@ -324,82 +195,48 @@
         serviceWorkerParam:{scope:'/'},
         autoResubscribe:true
       });
-      if(pendingUser) await bindOneSignalUser(pendingUser);
-      refreshPushButton();
-    }catch(err){
-      console.error('OneSignal init:',err);
-      showStatus('Bildirim sistemi başlatılamadı',4200);
-    }
+      if(pendingUser)await bindUser(pendingUser);
+    }catch(e){console.warn('OneSignal init',e)}
+    refreshPushButton();
   });
 
-  pushBtn.addEventListener('click',async()=>{
-    try{
-      if(isIOS() && !isStandalone()){
-        maybeShowIOSInstallTip();
-        showStatus('Önce Ana Ekrana ekleyin');
-        return;
-      }
-
-      if(!oneSignalApi){
-        showStatus('Bildirim sistemi hazırlanıyor');
-        return;
-      }
-
-      if(Notification.permission==='denied'){
-        showStatus('Bildirim izni tarayıcıda engelli. Site ayarlarından Bildirimler → İzin ver seçin.',6500);
-        return;
-      }
-
-      if(currentEducationId){
-        await oneSignalApi.login(currentEducationId);
-      }
-
-      await oneSignalApi.Notifications.requestPermission();
-
-      if(Notification.permission==='granted'){
-        try{
-          if(oneSignalApi.User && oneSignalApi.User.PushSubscription){
-            await oneSignalApi.User.PushSubscription.optIn();
-          }
-        }catch(_){}
-
-        if(pendingUser) {{
-          await setDigitalTags(pendingUser);
-          await sendPwaStatus('DIJITAL',pendingUser);
-        }}
-
-        pushBtn.classList.remove('show');
-        showStatus('Bildirimler açıldı ✓',3500);
-      }else{
-        refreshPushButton();
-        showStatus('Bildirim izni verilmedi',3000);
-      }
-    }catch(err){
-      console.error('Notification permission:',err);
-      refreshPushButton();
-      showStatus('Bildirim izni açılamadı',3500);
-    }
+  window.addEventListener('message',async e=>{
+    if(e.source!==frame.contentWindow)return;
+    const d=e.data||{};
+    if(d.type==='TBPG_DIGITAL_USER')await bindUser(d);
+    if(d.type==='TBPG_REQUEST_PUSH')await requestPush();
   });
 
-  // ---------- APPS SCRIPT IFRAME → GITHUB PWA ----------
-  window.addEventListener('message',async event=>{
-    if(!frame || event.source!==frame.contentWindow) return;
-    const data=event.data||{};
-
-    if(data.type==='TBPG_DIGITAL_USER'){
-      await bindOneSignalUser(data);
-    }
-    else if(data.type==='TBPG_DIGITAL_LOGOUT'){
-      // OneSignal.logout() YOK.
-      // Abonelik Eğitim_ID üzerinde kalır; portal kapalıyken de bildirim gelir.
-      currentEducationId='';
-      pendingUser=null;
-      pushBtn.classList.remove('show');
-    }
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredPrompt=e;
+    if(!isStandalone())installBtn.classList.add('show');
   });
 
+  window.addEventListener('appinstalled',async()=>{
+    installBtn.classList.remove('show');
+    status('Dijital Yönetim Merkezi yüklendi ✓');
+    if(pendingUser)await ping(pendingUser);
+  });
+
+  installBtn.addEventListener('click',async()=>{
+    if(isIOS()){
+      tip.style.display='block';
+      return;
+    }
+    if(!deferredPrompt){
+      status('Tarayıcı menüsünden “Uygulamayı yükle” seçeneğini kullanın.',5000);
+      return;
+    }
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt=null;
+  });
+
+  pushBtn.addEventListener('click',requestPush);
+  document.getElementById('tipClose').addEventListener('click',()=>tip.style.display='none');
+
+  if(isIOS()&&!isStandalone())installBtn.classList.add('show');
   refreshPushButton();
-  maybeShowIOSInstallTip();
 })();
 </script>
 </body>
